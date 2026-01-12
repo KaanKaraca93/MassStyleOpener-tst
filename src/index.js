@@ -158,7 +158,9 @@ app.post('/api/style/create', async (req, res) => {
         
         // Step 5: Create Style
         console.log('🎨 Step 5: Creating style...');
-        const styleResult = await styleService.createStyle(docLibData.data, hierarchyData.data);
+        // hierarchyData is already flat when cached, not nested in .data
+        const hierarchyInfo = hierarchyData.data || hierarchyData;
+        const styleResult = await styleService.createStyle(docLibData.data, hierarchyInfo);
         
         if (!styleResult.success) {
             return res.status(500).json({
@@ -172,7 +174,7 @@ app.post('/api/style/create', async (req, res) => {
         console.log('📸 Step 6: Uploading image...');
         const imageResult = await imageService.uploadImageToStyle(
             docLibData.data.imageUrl,
-            styleResult.data.styleKey,
+            styleResult.styleKey, // styleKey is at root level, not in .data
             docLibData.data.filename
         );
         
@@ -183,11 +185,14 @@ app.post('/api/style/create', async (req, res) => {
                 partial: true,
                 message: 'Style created successfully, but image upload failed',
                 data: {
-                    style: styleResult.data,
+                    styleKey: styleResult.styleKey,
+                    styleCode: styleResult.styleCode,
+                    stylePlmData: styleResult.data,
                     imageError: imageResult.error
                 },
                 timing: {
-                    total_ms: Date.now() - startTime
+                    total_ms: Date.now() - startTime,
+                    style_ms: styleResult.elapsed
                 }
             });
         }
@@ -195,19 +200,24 @@ app.post('/api/style/create', async (req, res) => {
         // Success!
         const totalTime = Date.now() - startTime;
         console.log(`\n✅ SUCCESS! Style created in ${totalTime}ms`);
-        console.log(`   Style Key: ${styleResult.data.styleKey}`);
-        console.log(`   Style Code: ${styleResult.data.styleCode}`);
-        console.log(`   Image: ${imageResult.data.objectKey}\n`);
+        console.log(`   Style Key: ${styleResult.styleKey}`);
+        console.log(`   Style Code: ${styleResult.styleCode}`);
+        console.log(`   Image: ${imageResult.data ? imageResult.data.objectKey : 'N/A'}\n`);
         
         res.json({
             success: true,
             message: 'Style created successfully with image',
             data: {
-                style: styleResult.data,
-                image: imageResult.data
+                styleKey: styleResult.styleKey,
+                styleCode: styleResult.styleCode,
+                stylePlmData: styleResult.data,
+                imageObjectKey: imageResult.data ? imageResult.data.objectKey : null,
+                imageMetadata: imageResult.data
             },
             timing: {
-                total_ms: totalTime
+                total_ms: totalTime,
+                style_ms: styleResult.elapsed,
+                image_ms: imageResult.elapsed
             }
         });
         
