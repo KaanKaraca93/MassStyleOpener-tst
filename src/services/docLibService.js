@@ -156,15 +156,23 @@ class DocLibService {
      */
     extractDocLibData(responseData) {
         try {
+            console.log('🔍 FULL RESPONSE:', JSON.stringify(responseData, null, 2));
+            
             // Navigate to actual data: entities[0].column (NOT data!)
             const docLibRecord = responseData?.entities?.[0]?.column;
             
+            console.log('🔍 docLibRecord:', JSON.stringify(docLibRecord, null, 2));
+            
             if (!docLibRecord) {
                 console.error('❌ No DocLib record found in entities[0].column');
+                console.error('❌ responseData.entities:', responseData?.entities);
                 throw new Error('No DocLib record found in response');
             }
 
-            console.log('✅ DocLib record found, extracting fields...');
+            console.log('✅ DocLib record found!');
+            console.log('📋 BrandId:', docLibRecord.BrandId);
+            console.log('📋 SeasonId:', docLibRecord.SeasonId);
+            console.log('📋 SubSubCategoryId:', docLibRecord.SubSubCategoryId);
 
             // Image URL is already complete (not a relative path)
             const imageUrl = docLibRecord.Image;
