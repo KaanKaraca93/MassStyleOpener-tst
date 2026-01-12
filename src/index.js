@@ -8,6 +8,7 @@ const styleService = require('./services/styleService');
 const imageService = require('./services/imageService');
 const validationService = require('./services/validationService');
 const tokenService = require('./services/tokenService');
+const processingLockService = require('./services/processingLockService');
 
 const app = express();
 
@@ -98,11 +99,26 @@ app.post('/api/style/create', async (req, res) => {
         console.log(`📥 DocLibId: ${DocLibId}`);
         console.log(`⏰ Start Time: ${new Date().toISOString()}\n`);
         
+        // Step 0: Check processing lock (prevent duplicate requests)
+        console.log('🔒 Step 0: Checking processing lock...');
+        const lockCheck = processingLockService.startProcessing(DocLibId);
+        
+        if (!lockCheck.allowed) {
+            console.log(`🚫 Request rejected: ${lockCheck.reason}`);
+            return res.status(400).json({
+                success: false,
+                error: lockCheck.message,
+                reason: lockCheck.reason,
+                elapsed_ms: lockCheck.elapsed || null
+            });
+        }
+        
         // Step 1: Get DocLib Data
         console.log('📦 Step 1: Fetching DocLib data...');
         const docLibData = await docLibService.getDocLibData(DocLibId);
         
         if (!docLibData.success) {
+            processingLockService.markFailed(DocLibId);
             return res.status(400).json({
                 success: false,
                 error: 'Failed to fetch DocLib data',
@@ -116,6 +132,7 @@ app.post('/api/style/create', async (req, res) => {
         
         if (!docLibValidation.isValid) {
             console.log('❌ DocLib validation failed');
+            processingLockService.markFailed(DocLibId);
             return res.status(400).json({
                 success: false,
                 error: 'DocLib validation failed',
@@ -136,6 +153,7 @@ app.post('/api/style/create', async (req, res) => {
         );
         
         if (!hierarchyData.success) {
+            processingLockService.markFailed(DocLibId);
             return res.status(400).json({
                 success: false,
                 error: 'Failed to fetch hierarchy data',
@@ -149,6 +167,7 @@ app.post('/api/style/create', async (req, res) => {
         
         if (!hierarchyValidation.isValid) {
             console.log('❌ Hierarchy validation failed');
+            processingLockService.markFailed(DocLibId);
             return res.status(400).json({
                 success: false,
                 error: 'Hierarchy mapping validation failed',
@@ -163,6 +182,7 @@ app.post('/api/style/create', async (req, res) => {
         const styleResult = await styleService.createStyle(docLibData.data, hierarchyInfo);
         
         if (!styleResult.success) {
+            processingLockService.markFailed(DocLibId);
             return res.status(500).json({
                 success: false,
                 error: 'Failed to create style',
@@ -180,6 +200,8 @@ app.post('/api/style/create', async (req, res) => {
         
         if (!imageResult.success) {
             console.log('⚠️  Style created but image upload failed');
+            // Mark as completed even though image failed (style was created, no duplicate)
+            processingLockService.markCompleted(DocLibId);
             return res.status(207).json({
                 success: true,
                 partial: true,
@@ -204,6 +226,9 @@ app.post('/api/style/create', async (req, res) => {
         console.log(`   Style Code: ${styleResult.styleCode}`);
         console.log(`   Image: ${imageResult.data ? imageResult.data.objectKey : 'N/A'}\n`);
         
+        // Mark as completed and cache (prevent future duplicates)
+        processingLockService.markCompleted(DocLibId);
+        
         res.json({
             success: true,
             message: 'Style created successfully with image',
@@ -223,6 +248,12 @@ app.post('/api/style/create', async (req, res) => {
         
     } catch (error) {
         console.error('❌ Error in /api/style/create:', error);
+        
+        // Mark processing as failed (remove lock, don't cache)
+        if (DocLibId) {
+            processingLockService.markFailed(DocLibId);
+        }
+        
         res.status(500).json({
             success: false,
             error: error.message,
