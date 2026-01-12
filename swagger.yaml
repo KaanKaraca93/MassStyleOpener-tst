@@ -1,0 +1,409 @@
+openapi: 3.0.3
+info:
+  title: Mass Style Opener API
+  description: |
+    PLM entegrasyonu ile DocLib görsellerinden otomatik ürün (Style) oluşturma sistemi.
+    
+    ## Ana İşlevler
+    - DocLib'den görsel ve metadata çekme
+    - Hiyerarşi mapping (Brand, Division, Category, SubCategory, SubSubCategory)
+    - Otomatik ürün (Style) oluşturma
+    - Görseli ürüne yükleme
+    
+    ## Kullanım
+    1. POST /api/style/create endpoint'ine DocLibId gönderin
+    2. Sistem otomatik olarak tüm süreci tamamlar
+    3. Oluşturulan ürün bilgilerini alırsınız
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: ISC
+    
+servers:
+  - url: https://massstyleopener-43e92bbf3ee9.herokuapp.com
+    description: Production server (Heroku)
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Sistem sağlık kontrol endpoint'leri
+  - name: DocLib
+    description: Doküman kütüphanesi işlemleri
+  - name: Style
+    description: Ürün oluşturma işlemleri (Full Flow)
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Temel sağlık kontrolü
+      description: API'nin çalışıp çalışmadığını kontrol eder
+      operationId: getHealth
+      responses:
+        '200':
+          description: API çalışıyor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  message:
+                    type: string
+                    example: Mass Trim Opener API çalışıyor
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: '2026-01-12T14:41:51.770Z'
+                  environment:
+                    type: string
+                    example: production
+                  tenant:
+                    type: string
+                    example: ATJZAMEWEF5P4SNV_PRD
+                  schema:
+                    type: string
+                    example: FSH2
+
+  /health/detailed:
+    get:
+      tags:
+        - Health
+      summary: Detaylı sağlık kontrolü
+      description: API'nin durumu, PLM bağlantısı ve OAuth token bilgilerini döner
+      operationId: getHealthDetailed
+      responses:
+        '200':
+          description: Detaylı sistem bilgileri
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      api:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            example: healthy
+                          uptime_seconds:
+                            type: number
+                            example: 120.477
+                      plm:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            example: configured
+                          tenant:
+                            type: string
+                            example: ATJZAMEWEF5P4SNV_PRD
+                          schema:
+                            type: string
+                            example: FSH2
+                          userId:
+                            type: integer
+                            example: 6
+                          token_status:
+                            type: string
+                            enum: [valid, expired]
+                            example: valid
+                          token_expires_at:
+                            type: string
+                            format: date-time
+                            nullable: true
+
+  /api/doclib/get:
+    post:
+      tags:
+        - DocLib
+      summary: DocLib verisini getir
+      description: Verilen DocLibId için görsel URL'i ve metadata'yı getirir
+      operationId: getDocLib
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - DocLibId
+              properties:
+                DocLibId:
+                  type: string
+                  description: DocLib kayıt ID'si
+                  example: "16"
+      responses:
+        '200':
+          description: DocLib verisi başarıyla getirildi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      docLibId:
+                        type: string
+                        example: "16"
+                      imageUrl:
+                        type: string
+                        format: uri
+                        example: https://infor-prd-fplm-eu-central-1-deployment-1.s3.eu-central-1.amazonaws.com/...
+                      filename:
+                        type: string
+                        example: TopluAksesuarAcma-16-3-LATEST.png
+                      brandId:
+                        type: integer
+                        example: 1
+                      seasonId:
+                        type: integer
+                        example: 5
+                      subSubCategoryId:
+                        type: integer
+                        example: 20
+                      BrandId_Lookup:
+                        type: object
+                        properties:
+                          Name:
+                            type: string
+                            example: MACHKA
+                          Code:
+                            type: string
+                            example: MS
+                      SeasonId_Lookup:
+                        type: object
+                        properties:
+                          Name:
+                            type: string
+                            example: S123-SS 23
+                          Code:
+                            type: string
+                            example: "38"
+                      SubSubCategoryId_Lookup:
+                        type: object
+                        properties:
+                          Name:
+                            type: string
+                            example: NECKLACE
+                          Code:
+                            type: string
+                            example: "072"
+        '400':
+          description: Geçersiz istek
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Sunucu hatası
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/style/create:
+    post:
+      tags:
+        - Style
+      summary: Ürün (Style) oluştur - Full Flow
+      description: |
+        DocLibId'den başlayarak tam akış:
+        1. DocLib verisini çek
+        2. Zorunlu alanları validate et (Brand, Season, SubSubCategory)
+        3. Hiyerarşi bilgilerini map et
+        4. Hiyerarşi mapping'i validate et
+        5. PLM'de Style oluştur
+        6. Görseli Style'a yükle
+        
+        **Önemli:** Brand, Season ve SubSubCategory null ise işlem skip edilir.
+      operationId: createStyle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - DocLibId
+              properties:
+                DocLibId:
+                  type: string
+                  description: DocLib kayıt ID'si
+                  example: "16"
+            examples:
+              example1:
+                summary: Başarılı örnek (DocLibId 16)
+                value:
+                  DocLibId: "16"
+      responses:
+        '200':
+          description: Style başarıyla oluşturuldu ve görsel yüklendi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Style created successfully with image
+                  data:
+                    type: object
+                    properties:
+                      style:
+                        type: object
+                        properties:
+                          styleKey:
+                            type: integer
+                            example: 10528
+                            description: PLM'deki Style ID
+                          styleCode:
+                            type: string
+                            example: 20260112-141210340
+                            description: Oluşturulan Style kodu
+                          brandId:
+                            type: integer
+                            example: 1
+                          seasonId:
+                            type: integer
+                            example: 5
+                          divisionId:
+                            type: integer
+                            example: 3
+                          categoryId:
+                            type: integer
+                            example: 7
+                          subCategoryId:
+                            type: integer
+                            example: 13
+                          subSubCategoryId:
+                            type: integer
+                            example: 20
+                      image:
+                        type: object
+                        properties:
+                          objectKey:
+                            type: string
+                            example: Style_Overview_MS1230072113_20260112_171211469.png
+                          objectId:
+                            type: integer
+                            example: 613
+                          thumbUrl:
+                            type: string
+                            format: uri
+                          customUrl:
+                            type: string
+                            format: uri
+                  timing:
+                    type: object
+                    properties:
+                      total_ms:
+                        type: integer
+                        example: 9431
+                        description: Toplam işlem süresi (milisaniye)
+        '207':
+          description: Style oluşturuldu ancak görsel yüklenemedi (kısmi başarı)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  partial:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Style created successfully, but image upload failed
+                  data:
+                    type: object
+                    properties:
+                      style:
+                        type: object
+                      imageError:
+                        type: string
+        '400':
+          description: Validation hatası (zorunlu alan eksik veya hiyerarşi mapping başarısız)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: DocLib validation failed
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Brand ID is required (null value)
+                      - Season ID is required (null value)
+                  warnings:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - Brand Code is missing - may affect Style Code generation
+        '500':
+          description: Sunucu hatası
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: An error occurred
+        details:
+          type: string
+          nullable: true
+        timing:
+          type: object
+          properties:
+            total_ms:
+              type: integer
+              
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: OAuth 2.0 Bearer Token (otomatik olarak sistem tarafından yönetilir)
+
+security: []

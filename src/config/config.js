@@ -10,6 +10,7 @@ const config = {
         tenant: 'ATJZAMEWEF5P4SNV_PRD',
         schema: 'FSH2',
         userId: 6,
+        userGuid: 'fc1f03e6-3bc7-4b51-a7d6-14e2f4818af9', // User GUID for x-infor-user header
         baseUrl: 'https://mingle-ionapi.eu1.inforcloudsuite.com/ATJZAMEWEF5P4SNV_PRD/FASHIONPLM'
     },
     
@@ -27,11 +28,16 @@ const config = {
         port: parseInt(process.env.PORT || '3000') // Heroku sets PORT automatically
     },
     
-    // API Headers (Hardcoded)
+    // API Headers (Hardcoded - matching curl requests)
     headers: {
         'x-fplm-schema': 'FSH2',
         'x-fplm-timezone-offset': '-180',
-        'x-infor-tenantid': 'ATJZAMEWEF5P4SNV_PRD'
+        'x-infor-tenantid': 'ATJZAMEWEF5P4SNV_PRD',
+        'x-infor-user': 'fc1f03e6-3bc7-4b51-a7d6-14e2f4818af9',
+        'x-fplm-client': '1',
+        'x-fplm-client-version': '16.0.32',
+        'x-fplm-idm-access': '1',
+        'x-fplm-client-locale': 'en-US'
     }
 };
 
