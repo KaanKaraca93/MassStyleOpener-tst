@@ -145,7 +145,7 @@ app.post('/api/style/create', async (req, res) => {
         
         // Step 4: Validate Hierarchy Mapping
         console.log('✓ Step 4: Validating hierarchy mapping...');
-        const hierarchyValidation = validationService.validateHierarchyMapping(hierarchyData.data);
+        const hierarchyValidation = validationService.validateHierarchyMapping(hierarchyData);
         
         if (!hierarchyValidation.isValid) {
             console.log('❌ Hierarchy validation failed');

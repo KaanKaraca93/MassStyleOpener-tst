@@ -184,7 +184,14 @@ class DocLibService {
                 brandId: docLibRecord.BrandId,
                 seasonId: docLibRecord.SeasonId,
                 subSubCategoryId: docLibRecord.SubSubCategoryId,
-                // Lookups are already embedded in the response with _Lookup suffix
+                // Flat lookup data for validation
+                brandCode: docLibRecord.BrandId_Lookup?.Code || null,
+                brandName: docLibRecord.BrandId_Lookup?.Name || null,
+                seasonCode: docLibRecord.SeasonId_Lookup?.Code || null,
+                seasonName: docLibRecord.SeasonId_Lookup?.Name || null,
+                subSubCategoryCode: docLibRecord.SubSubCategoryId_Lookup?.Code || null,
+                subSubCategoryName: docLibRecord.SubSubCategoryId_Lookup?.Name || null,
+                // Original lookup objects
                 BrandId_Lookup: docLibRecord.BrandId_Lookup || null,
                 SeasonId_Lookup: docLibRecord.SeasonId_Lookup || null,
                 SubSubCategoryId_Lookup: docLibRecord.SubSubCategoryId_Lookup || null

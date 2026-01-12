@@ -54,15 +54,18 @@ class ValidationService {
         const warnings = [];
 
         // Check if hierarchy mapping was successful
-        if (!hierarchyData.success) {
-            errors.push('Hierarchy mapping failed: ' + (hierarchyData.error || 'Unknown error'));
+        if (!hierarchyData || !hierarchyData.success) {
+            errors.push('Hierarchy mapping failed: ' + (hierarchyData?.error || 'Unknown error'));
             return {
-                valid: false,
+                isValid: false,
                 errors: errors,
                 warnings: warnings,
                 reason: 'Hierarchy mapping failed'
             };
         }
+
+        // Extract actual data from nested structure
+        const data = hierarchyData.data || hierarchyData;
 
         // Check required hierarchy fields
         const requiredFields = [
@@ -72,13 +75,13 @@ class ValidationService {
         ];
 
         requiredFields.forEach(({ field, name }) => {
-            if (!hierarchyData[field] || hierarchyData[field] === null) {
+            if (!data[field] || data[field] === null) {
                 errors.push(`${name} not found in hierarchy (${field} is null)`);
             }
         });
 
         // UserDefinedField2 is optional but recommended
-        if (!hierarchyData.userDefinedField2Id) {
+        if (!data.userDefinedField2Id) {
             warnings.push('UserDefinedField2 not found in hierarchy - may affect style creation');
         }
 
