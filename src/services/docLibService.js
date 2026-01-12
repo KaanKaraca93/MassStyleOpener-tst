@@ -122,9 +122,13 @@ class DocLibService {
 
             console.log('✅ DocLib data retrieved successfully');
             
+            // Extract and parse response data
+            const extractedData = this.extractDocLibData(response.data);
+            console.log('📋 Extracted Data Keys:', Object.keys(extractedData));
+            
             return {
                 success: true,
-                data: response.data
+                data: extractedData
             };
             
         } catch (error) {
@@ -142,6 +146,45 @@ class DocLibService {
                 error: error.message,
                 details: error.response?.data
             };
+        }
+    }
+
+    /**
+     * Extract and parse DocLib response data
+     * @param {Object} responseData - Raw API response
+     * @returns {Object} Parsed DocLib data
+     */
+    extractDocLibData(responseData) {
+        try {
+            // Navigate to actual data: entities[0].data[0]
+            const docLibRecord = responseData?.entities?.[0]?.data?.[0];
+            
+            if (!docLibRecord) {
+                throw new Error('No DocLib record found in response');
+            }
+
+            // Extract image URL from Image field
+            const imageField = docLibRecord.Image;
+            const imageUrl = imageField ? `https://idm.eu1.inforcloudsuite.com${imageField}` : null;
+
+            // Extract lookups
+            const lookups = responseData.lookups || {};
+            
+            return {
+                docLibId: docLibRecord.DocLibId,
+                imageUrl: imageUrl,
+                filename: docLibRecord.Filename || 'unknown.png',
+                brandId: docLibRecord.BrandId,
+                seasonId: docLibRecord.SeasonId,
+                subSubCategoryId: docLibRecord.SubSubCategoryId,
+                BrandId_Lookup: lookups.Brand?.[docLibRecord.BrandId] || null,
+                SeasonId_Lookup: lookups.Season?.[docLibRecord.SeasonId] || null,
+                SubSubCategoryId_Lookup: lookups.SubSubCategory?.[docLibRecord.SubSubCategoryId] || null
+            };
+            
+        } catch (error) {
+            console.error('❌ Error extracting DocLib data:', error.message);
+            throw error;
         }
     }
 }
