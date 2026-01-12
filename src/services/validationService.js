@@ -37,7 +37,7 @@ class ValidationService {
         const isValid = errors.length === 0;
 
         return {
-            valid: isValid,
+            isValid: isValid,
             errors: errors,
             warnings: warnings,
             reason: isValid ? null : errors.join(', ')
@@ -85,7 +85,7 @@ class ValidationService {
         const isValid = errors.length === 0;
 
         return {
-            valid: isValid,
+            isValid: isValid,
             errors: errors,
             warnings: warnings,
             reason: isValid ? null : errors.join(', ')
