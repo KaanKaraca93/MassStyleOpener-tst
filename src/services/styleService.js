@@ -10,10 +10,11 @@ class StyleService {
 
     /**
      * Create a new style in PLM
-     * @param {Object} styleData - Style creation data
+     * @param {Object} docLibData - DocLib data (brand, season, etc.)
+     * @param {Object} hierarchyData - Hierarchy data (division, category, etc.)
      * @returns {Promise<Object>} Creation result
      */
-    async createStyle(styleData) {
+    async createStyle(docLibData, hierarchyData) {
         try {
             console.log('\n🎨 Creating style in PLM...');
             const startTime = Date.now();
@@ -25,8 +26,8 @@ class StyleService {
             const endpoint = `${this.baseUrl}/pdm/api/pdm/style/v2/save`;
             console.log(`📡 Endpoint: ${endpoint}`);
             
-            // Build payload
-            const payload = this.buildStylePayload(styleData);
+            // Build payload with both docLib and hierarchy data
+            const payload = this.buildStylePayload(docLibData, hierarchyData);
             
             console.log('📦 Style Payload:');
             console.log(JSON.stringify(payload, null, 2));
@@ -72,28 +73,31 @@ class StyleService {
 
     /**
      * Build style creation payload
-     * @param {Object} data - Input data
+     * @param {Object} docLibData - DocLib data (brand, season, filename, etc.)
+     * @param {Object} hierarchyData - Hierarchy data (division, category, subcategory)
      * @returns {Object} PLM payload
      */
-    buildStylePayload(data) {
+    buildStylePayload(docLibData, hierarchyData) {
+        // Extract from docLibData
         const {
             brandId,
+            seasonId,
+            subSubCategoryId,
+            brandCode,
+            brandName,
+            seasonCode,
+            seasonName,
+            subSubCategoryCode,
+            filename
+        } = docLibData;
+
+        // Extract from hierarchyData
+        const {
             divisionId,
             categoryId,
             subCategoryId,
-            subSubCategoryId,
-            userDefinedField2Id,
-            seasonId,
-            name,
-            styleCode,
-            description,
-            // ID Generation fields (from DocLib lookup data)
-            brandName,
-            brandCode,
-            seasonName,
-            seasonCode,
-            subSubCategoryCode
-        } = data;
+            userDefinedField2Id
+        } = hierarchyData;
 
         return {
             key: "0",
@@ -171,7 +175,7 @@ class StyleService {
                 },
                 {
                     fieldName: "Description",
-                    value: description || null
+                    value: filename ? `Auto-created from ${filename}` : null
                 }
             ],
             idGenContextVal: JSON.stringify([
