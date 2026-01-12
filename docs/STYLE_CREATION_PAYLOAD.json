@@ -1,0 +1,105 @@
+{
+  "key": "0",
+  "userId": 6,
+  "notificationMessageKey": "CREATED_STYLE_OVERVIEW",
+  "fieldValues": [
+    {
+      "fieldName": "BrandId",
+      "value": "5",
+      "comment": "Önceki API'den Geliyor"
+    },
+    {
+      "fieldName": "DivisionId",
+      "value": "4",
+      "comment": "Önceki API'deki Sonuca Göre Hiyerarşiden Geliyor"
+    },
+    {
+      "fieldName": "CategoryId",
+      "value": "12",
+      "comment": "Önceki API'deki Sonuca Göre Hiyerarşiden Geliyor"
+    },
+    {
+      "fieldName": "SeasonId",
+      "value": "5",
+      "comment": "Önceki API'den Geliyor"
+    },
+    {
+      "fieldName": "SubCategoryId",
+      "value": "6",
+      "comment": "Önceki API'deki Sonuca Göre Hiyerarşiden Geliyor"
+    },
+    {
+      "fieldName": "ProductSubSubCategoryId",
+      "value": "20",
+      "comment": "Önceki API'den Geliyor"
+    },
+    {
+      "fieldName": "UserDefinedField2Id",
+      "value": "87",
+      "comment": "Önceki API'deki Sonuca Göre Hiyerarşiden Geliyor"
+    },
+    {
+      "fieldName": "CreateId",
+      "value": 6
+    },
+    {
+      "fieldName": "AcqCode",
+      "value": 1
+    },
+    {
+      "fieldName": "IsFfPhantom",
+      "value": 1
+    },
+    {
+      "fieldName": "IsNosItem",
+      "value": 1
+    },
+    {
+      "fieldName": "IsModified",
+      "value": 1
+    },
+    {
+      "fieldName": "StyleCode",
+      "value": null
+    },
+    {
+      "fieldName": "Name",
+      "value": null
+    }
+  ],
+  "subEntities": [
+    {
+      "key": 0,
+      "fieldValues": [
+        {
+          "fieldName": "Status",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "key": 0,
+      "subEntity": "StyleColorways",
+      "fieldValues": [
+        {
+          "fieldName": "Colors",
+          "value": null
+        }
+      ]
+    },
+    {
+      "key": 0,
+      "subEntity": "StyleBOM",
+      "fieldValues": [
+        {
+          "fieldName": "MainMaterialName",
+          "value": null
+        }
+      ]
+    }
+  ],
+  "modifyId": "6",
+  "locale": "en-US",
+  "isGenAiGenerated": false,
+  "Schema": "FSH2"
+}
