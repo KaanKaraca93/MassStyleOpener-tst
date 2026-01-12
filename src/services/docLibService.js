@@ -156,29 +156,18 @@ class DocLibService {
      */
     extractDocLibData(responseData) {
         try {
-            // Log response structure for debugging
-            console.log('📋 Response Structure:', JSON.stringify({
-                hasEntities: !!responseData?.entities,
-                entitiesLength: responseData?.entities?.length,
-                firstEntityKeys: responseData?.entities?.[0] ? Object.keys(responseData.entities[0]) : null,
-                hasData: !!responseData?.entities?.[0]?.data,
-                dataLength: responseData?.entities?.[0]?.data?.length
-            }, null, 2));
-            
-            // Navigate to actual data: entities[0].data[0]
-            const docLibRecord = responseData?.entities?.[0]?.data?.[0];
+            // Navigate to actual data: entities[0].column (NOT data!)
+            const docLibRecord = responseData?.entities?.[0]?.column;
             
             if (!docLibRecord) {
-                console.error('❌ Full Response:', JSON.stringify(responseData, null, 2));
+                console.error('❌ No DocLib record found in entities[0].column');
                 throw new Error('No DocLib record found in response');
             }
 
-            // Extract image URL from Image field
-            const imageField = docLibRecord.Image;
-            const imageUrl = imageField ? `https://idm.eu1.inforcloudsuite.com${imageField}` : null;
+            console.log('✅ DocLib record found, extracting fields...');
 
-            // Extract lookups
-            const lookups = responseData.lookups || {};
+            // Image URL is already complete (not a relative path)
+            const imageUrl = docLibRecord.Image;
             
             return {
                 docLibId: docLibRecord.DocLibId,
@@ -187,9 +176,10 @@ class DocLibService {
                 brandId: docLibRecord.BrandId,
                 seasonId: docLibRecord.SeasonId,
                 subSubCategoryId: docLibRecord.SubSubCategoryId,
-                BrandId_Lookup: lookups.Brand?.[docLibRecord.BrandId] || null,
-                SeasonId_Lookup: lookups.Season?.[docLibRecord.SeasonId] || null,
-                SubSubCategoryId_Lookup: lookups.SubSubCategory?.[docLibRecord.SubSubCategoryId] || null
+                // Lookups are already embedded in the response with _Lookup suffix
+                BrandId_Lookup: docLibRecord.BrandId_Lookup || null,
+                SeasonId_Lookup: docLibRecord.SeasonId_Lookup || null,
+                SubSubCategoryId_Lookup: docLibRecord.SubSubCategoryId_Lookup || null
             };
             
         } catch (error) {
