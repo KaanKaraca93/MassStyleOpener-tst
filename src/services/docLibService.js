@@ -156,10 +156,20 @@ class DocLibService {
      */
     extractDocLibData(responseData) {
         try {
+            // Log response structure for debugging
+            console.log('📋 Response Structure:', JSON.stringify({
+                hasEntities: !!responseData?.entities,
+                entitiesLength: responseData?.entities?.length,
+                firstEntityKeys: responseData?.entities?.[0] ? Object.keys(responseData.entities[0]) : null,
+                hasData: !!responseData?.entities?.[0]?.data,
+                dataLength: responseData?.entities?.[0]?.data?.length
+            }, null, 2));
+            
             // Navigate to actual data: entities[0].data[0]
             const docLibRecord = responseData?.entities?.[0]?.data?.[0];
             
             if (!docLibRecord) {
+                console.error('❌ Full Response:', JSON.stringify(responseData, null, 2));
                 throw new Error('No DocLib record found in response');
             }
 
