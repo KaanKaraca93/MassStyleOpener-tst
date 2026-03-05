@@ -264,6 +264,25 @@ app.post('/api/style/create', async (req, res) => {
     }
 });
 
+// Debug: Raw hierarchy dump (TST only)
+app.get('/api/hierarchy/raw', async (req, res) => {
+    try {
+        const result = await hierarchyService.getFullHierarchy();
+        if (!result.success) {
+            return res.status(500).json(result);
+        }
+        // Return first 3 entities to inspect structure
+        const entities = result.data.entities || [];
+        const sample = entities.slice(0, 3).map(e => e.column);
+        res.json({
+            totalEntities: entities.length,
+            sample: sample
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Start server
 const PORT = config.server.port;
 app.listen(PORT, () => {

@@ -10,7 +10,7 @@ const config = {
         tenant: 'ATJZAMEWEF5P4SNV_TST',
         schema: 'FSH4',
         userId: 6,
-        userGuid: 'fc1f03e6-3bc7-4b51-a7d6-14e2f4818af9', // User GUID for x-infor-user header
+        userGuid: '2e20c777-d8f8-42c0-82e7-9ddd353ba73f', // User GUID for x-infor-user header
         baseUrl: 'https://mingle-ionapi.eu1.inforcloudsuite.com/ATJZAMEWEF5P4SNV_TST/FASHIONPLM'
     },
     
@@ -33,7 +33,7 @@ const config = {
         'x-fplm-schema': 'FSH4',
         'x-fplm-timezone-offset': '-180',
         'x-infor-tenantid': 'ATJZAMEWEF5P4SNV_TST',
-        'x-infor-user': 'fc1f03e6-3bc7-4b51-a7d6-14e2f4818af9',
+        'x-infor-user': '2e20c777-d8f8-42c0-82e7-9ddd353ba73f',
         'x-fplm-client': '1',
         'x-fplm-client-version': '16.0.32',
         'x-fplm-idm-access': '1',
