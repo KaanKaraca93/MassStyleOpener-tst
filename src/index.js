@@ -20,7 +20,7 @@ app.use(express.json());
 app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
-        message: 'Mass Trim Opener API çalışıyor',
+        message: 'Mass Style Opener TST API çalışıyor',
         timestamp: new Date().toISOString(),
         environment: config.env,
         tenant: config.plm.tenant,
@@ -268,7 +268,7 @@ app.post('/api/style/create', async (req, res) => {
 const PORT = config.server.port;
 app.listen(PORT, () => {
     console.log('\n╔════════════════════════════════════════════════╗');
-    console.log('║   Mass Trim Opener API Server                ║');
+    console.log('║   Mass Style Opener - TST API Server         ║');
     console.log('╚════════════════════════════════════════════════╝\n');
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🌍 Environment: ${config.env}`);
